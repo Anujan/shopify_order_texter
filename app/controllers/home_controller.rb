@@ -8,11 +8,21 @@ class HomeController < ApplicationController
   end
   
   def index
-    # get 10 products
-    @products = ShopifyAPI::Product.find(:all, :params => {:limit => 10})
-
-    # get latest 5 orders
-    @orders   = ShopifyAPI::Order.find(:all, :params => {:limit => 5, :order => "created_at DESC" })
+    if Shop.where(:name => ShopifyAPI::Shop.current.name).exists?
+      session[:shop] = Shop.where(:name => ShopifyAPI::Shop.current.name).first
+    else 
+      shop = Shop.new(:name => ShopifyAPI::Shop.current.name, :url => "http://#{ShopifyAPI::Shop.current.domain}", :installed => true)
+      shop.save
+      session[:shop] = shop
+      init_webhooks
+    end
   end
   
+  def init_webhooks
+    topics = ["orders/payment"]
+    topics.each do |topic|
+      webhook = ShopifyAPI::Webhook.create(:format => "json", :topic => topic, :address => "http://#{DOMAIN_NAMES[RAILS_ENV]}/webhooks/#{topic}")
+      raise "Webhook invalid: #{webhook.errors}" unless webhook.valid?
+    end
+  end
 end

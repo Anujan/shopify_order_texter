@@ -7,6 +7,9 @@ ShopifyOrderTexter::Application.routes.draw do
     get 'auth/shopify/callback' => :show
     delete 'logout' => :destroy
   end
+
+  post 'webhooks/orders/payment' => 'webhook#order_payment'
+
   root :to => 'home#index'
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
