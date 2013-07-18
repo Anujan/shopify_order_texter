@@ -11,7 +11,7 @@ class HomeController < ApplicationController
     if Shop.where(:name => ShopifyAPI::Shop.current.name).exists?
       session[:shop] = Shop.where(:name => ShopifyAPI::Shop.current.name).first
     else 
-      shop = Shop.new(:name => ShopifyAPI::Shop.current.name, :url => "http://#{ShopifyAPI::Shop.current.domain}", :installed => true)
+      shop = Shop.new(:name => ShopifyAPI::Shop.current.name, :url => "http://#{ShopifyAPI::Shop.current.domain}", :installed => true, :phone_number => ShopifyAPI::Shop.current.phone)
       shop.save
       session[:shop] = shop
       init_webhooks

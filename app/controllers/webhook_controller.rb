@@ -4,18 +4,21 @@ class WebhookController < ApplicationController
 
   def order_payment
     data = ActiveSupport::JSON.decode(request.body.read)
-    twilio_sid = ENV["TWILIO_SID"]
-    twilio_token = ENV["TWILIO_TOKEN"]
-    twilio_phone_number = ENV["TWILIO_PHONE_NUMBER"]
-    notify_number = ENV["NOTIFY_NUMBER"]
+    shop_url = request.headers['x-shopify-shop-domain']
+    @shop = Shop.where(:url => shop_url)
+    if (@shop.exists? && !@shop.phone_number.blank?) 
+      twilio_sid = ENV["TWILIO_SID"]
+      twilio_token = ENV["TWILIO_TOKEN"]
+      twilio_phone_number = ENV["TWILIO_PHONE_NUMBER"]
+      notify_number = @shop.phone_number
+      twilio = Twilio::REST::Client.new twilio_sid, twilio_token
 
-    twilio = Twilio::REST::Client.new twilio_sid, twilio_token
-
-    twilio.account.sms.messages.create(
-      :from => twilio_phone_number,
-      :to => notify_number,
-      :body => "An order from #{data["customer"]["email"]} has been paid for the amount of #{data["total_price"]}."
-      )
+      twilio.account.sms.messages.create(
+        :from => twilio_phone_number,
+        :to => notify_number,
+        :body => "An order from #{data["customer"]["email"]} has been paid for the amount of #{data["total_price"]}."
+        )
+    end
     head :ok
   end
   
